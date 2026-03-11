@@ -87,15 +87,18 @@ def auto_figsize(n: int, orientation: str = "vertical") -> tuple[float, float]:
 
 
 def setup_grid(ax: Axes, orientation: str = "vertical", *, show: bool = True) -> None:
-    """Apply default grid styling and spine z-order to an axes.
+    """Apply default grid styling, spine removal, and z-order to an axes.
 
     Args:
         ax: Target axes.
         orientation: ``"vertical"`` or ``"horizontal"`` (determines grid axis).
         show: If ``False``, skip grid lines but still set spine z-order.
     """
+    theme = get_theme()
+    if theme.remove_top_right_spines:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
     if show:
-        theme = get_theme()
         grid_axis = "x" if orientation == "horizontal" else "y"
         ax.grid(
             axis=grid_axis, linestyle="--", alpha=theme.grid_alpha, color="black", linewidth=0.5, zorder=ZORDER_GRID
@@ -129,7 +132,7 @@ def set_labels(
 
 
 def setup_legend(ax: Axes, *, show: bool = True, legend_kw: dict[str, Any] | None = None) -> None:
-    """Apply legend with theme-aware font sizing and custom overrides.
+    """Apply legend with theme-aware font sizing, frameon, and custom overrides.
 
     Args:
         ax: Target axes.
@@ -139,7 +142,7 @@ def setup_legend(ax: Axes, *, show: bool = True, legend_kw: dict[str, Any] | Non
     if not show:
         return
     theme = get_theme()
-    kwargs: dict[str, Any] = {"fontsize": theme.tick_fontsize}
+    kwargs: dict[str, Any] = {"fontsize": theme.tick_fontsize, "frameon": theme.legend_frameon}
     if legend_kw is not None:
         kwargs.update(legend_kw)
     ax.legend(**kwargs)
@@ -233,6 +236,8 @@ def make_fig_ax(
         return ax.figure, ax, False
     theme = get_theme()
     fig, new_ax = plt.subplots(figsize=figsize, dpi=theme.dpi)
+    for spine in new_ax.spines.values():
+        spine.set_linewidth(theme.axes_linewidth)
     return fig, new_ax, True
 
 

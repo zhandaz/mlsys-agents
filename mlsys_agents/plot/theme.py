@@ -25,18 +25,18 @@ mpl.rcParams["pdf.fonttype"] = 42
 mpl.rcParams["ps.fonttype"] = 42
 mpl.rcParams["font.family"] = "DejaVu Sans"
 
-# 10-color qualitative fallback (Tol-inspired, colorblind-safe)
+# 10-color qualitative fallback (diverse hues, colorblind-safe)
 QUALITATIVE_10: list[str] = [
-    "#264653",
-    "#2A9D8F",
-    "#E9C46A",
-    "#F4A261",
-    "#E76F51",
-    "#1B4332",
-    "#2D6A4F",
-    "#40916C",
-    "#52B788",
-    "#74C69D",
+    "#0F4D92",  # deep blue
+    "#2A9D8F",  # teal
+    "#E9C46A",  # gold
+    "#E76F51",  # red-orange
+    "#9A4D8E",  # violet
+    "#52B788",  # green
+    "#F4A261",  # orange
+    "#3775BA",  # medium blue
+    "#B64342",  # red
+    "#42949E",  # steel teal
 ]
 
 
@@ -84,6 +84,10 @@ class Theme:
     edge_color: str = "black"
     edge_width: float = 0.5
     grid_alpha: float = 0.3
+    remove_top_right_spines: bool = True
+    legend_frameon: bool = False
+    axes_linewidth: float = 1.5
+    fancy_font: bool = False
 
     @property
     def tick_fontsize(self) -> float:
@@ -120,6 +124,10 @@ def set_theme(
     edge_color: str | None = None,
     edge_width: float | None = None,
     grid_alpha: float | None = None,
+    remove_top_right_spines: bool | None = None,
+    legend_frameon: bool | None = None,
+    axes_linewidth: float | None = None,
+    fancy_font: bool | None = None,
 ) -> Theme:
     """Update the global theme in-place and return it.
 
@@ -144,6 +152,19 @@ def set_theme(
         t.edge_width = edge_width
     if grid_alpha is not None:
         t.grid_alpha = grid_alpha
+    if remove_top_right_spines is not None:
+        t.remove_top_right_spines = remove_top_right_spines
+    if legend_frameon is not None:
+        t.legend_frameon = legend_frameon
+    if axes_linewidth is not None:
+        t.axes_linewidth = axes_linewidth
+    if fancy_font is not None:
+        t.fancy_font = fancy_font
+        if fancy_font:
+            mpl.rcParams["font.family"] = "sans-serif"
+            mpl.rcParams["font.sans-serif"] = ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"]
+        else:
+            mpl.rcParams["font.family"] = "DejaVu Sans"
     return t
 
 
