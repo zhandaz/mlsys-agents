@@ -139,7 +139,11 @@ def bar(
         label_fs = bar_label_fontsize if bar_label_fontsize is not None else theme.value_fontsize
         labels = [format(v, value_fmt) for v in values]
         ax_.bar_label(
-            bars, labels=labels, fontsize=label_fs, padding=bar_label_padding, rotation=bar_label_rotation,
+            bars,
+            labels=labels,
+            fontsize=label_fs,
+            padding=bar_label_padding,
+            rotation=bar_label_rotation,
             zorder=ZORDER_LABELS,
         )
 

@@ -145,8 +145,12 @@ def grouped_bar(
             else:
                 labels = [format(v, value_fmt) for v in values]
             ax_.bar_label(
-                container, labels=labels, fontsize=label_fs, padding=bar_label_padding,
-                rotation=bar_label_rotation, zorder=ZORDER_LABELS,
+                container,
+                labels=labels,
+                fontsize=label_fs,
+                padding=bar_label_padding,
+                rotation=bar_label_rotation,
+                zorder=ZORDER_LABELS,
             )
 
     ax_.set_xticks(x)
