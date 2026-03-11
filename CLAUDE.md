@@ -72,6 +72,10 @@ pytest
 - Format: `black` (line-length 120)
 - Run `pre-commit run -a` before committing
 
+## Claude Code Skill
+
+`.claude/skills/plot/SKILL.md` contains the full API reference for `mlsys_agents.plot`. This skill is auto-loaded when running Claude Code in this repo. Other projects can symlink or copy it into their own `.claude/skills/` directory (see README for instructions).
+
 ## Adding a New Chart Type
 
 1. Create `mlsys_agents/plot/<chart_type>.py` with a single public function
