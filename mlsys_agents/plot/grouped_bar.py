@@ -1,14 +1,23 @@
 """Grouped bar chart: multiple methods compared across groups.
 
-Example::
+Example (multi-panel with shared legend)::
 
+    import matplotlib.pyplot as plt
     from mlsys_agents.plot import grouped_bar, save
 
     data = {
-        "A100": {"Megatron": 1.0, "DeepSpeed": 0.85},
-        "H100": {"Megatron": 1.5, "DeepSpeed": 1.3},
+        "64K": {"Megatron": 4800, "DeepSpeed": 3200, "FSDP": 2900},
+        "128K": {"Megatron": 3600, "DeepSpeed": 2600, "FSDP": 2400},
     }
-    fig, ax = grouped_bar(data, ylabel="Throughput (tok/s)", show_values=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+    _, ax = grouped_bar(
+        data, ax=axes[0], ylabel="Throughput (tok/s)",
+        show_values=True, bar_label_fontsize=9, bar_label_rotation=90,
+        ylim=(0, 10000), show_legend=False,
+    )
+    # ... render second panel on axes[1] ...
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper center", ncol=3)
     save(fig, "throughput_comparison")
 """
 
@@ -28,6 +37,7 @@ from mlsys_agents.plot.common import (
     resolve_display_names,
     set_labels,
     setup_grid,
+    setup_legend,
     tick_rotation,
     unique_inner_keys,
 )
@@ -46,10 +56,17 @@ def grouped_bar(
     ylabel: str | None = None,
     xlabel: str | None = None,
     title: str | None = None,
+    ylim: tuple[float, float] | None = None,
     show_values: bool = False,
     value_fmt: str = ".0f",
+    bar_label_fontsize: float | None = None,
+    bar_label_rotation: float = 0,
+    bar_label_padding: float = 2,
     bar_label_processor: Callable[[str, str, Any], str] | None = None,
     hatches: dict[str, str] | list[str] | None = None,
+    show_legend: bool = True,
+    legend_kw: dict[str, Any] | None = None,
+    show_grid: bool = True,
     palette: str | None = None,
     colors: dict[str, str] | list[str] | None = None,
     figsize: tuple[float, float] | None = None,
@@ -63,10 +80,17 @@ def grouped_bar(
         ylabel: Y-axis label.
         xlabel: X-axis label.
         title: Figure title.
+        ylim: Y-axis limits ``(min, max)``.
         show_values: Annotate bars with their numeric value.
         value_fmt: Format string for value annotations.
+        bar_label_fontsize: Font size for bar value labels (default from theme).
+        bar_label_rotation: Rotation angle for bar value labels (default ``0``).
+        bar_label_padding: Padding between bar and value label in points (default ``2``).
         bar_label_processor: ``(group, method, value) -> str`` for custom labels.
         hatches: Hatch patterns per method (dict or list).
+        show_legend: Show the legend (default ``True``). Set to ``False`` for shared legends.
+        legend_kw: Extra kwargs passed to ``ax.legend()`` (e.g., ``loc``, ``ncol``, ``bbox_to_anchor``).
+        show_grid: Show grid lines (default ``True``).
         palette: Name of a registered palette (resolves method keys).
         colors: Explicit colors per method. Overrides *palette*.
         figsize: Figure size in inches. Auto-computed if omitted.
@@ -115,18 +139,22 @@ def grouped_bar(
         container = ax_.bar(x + offset, values, bar_width, label=method_display[j], **bar_kw)
 
         if show_values:
+            label_fs = bar_label_fontsize if bar_label_fontsize is not None else theme.value_fontsize
             if bar_label_processor is not None:
                 labels = [bar_label_processor(g, method, data[g].get(method, 0)) for g in group_labels]
             else:
                 labels = [format(v, value_fmt) for v in values]
-            ax_.bar_label(container, labels=labels, fontsize=theme.value_fontsize, padding=2, zorder=ZORDER_LABELS)
+            ax_.bar_label(
+                container, labels=labels, fontsize=label_fs, padding=bar_label_padding,
+                rotation=bar_label_rotation, zorder=ZORDER_LABELS,
+            )
 
     ax_.set_xticks(x)
     rotation, ha = tick_rotation(n_groups)
     ax_.set_xticklabels(group_labels, fontsize=theme.tick_fontsize, rotation=rotation, ha=ha)
 
-    set_labels(ax_, xlabel=xlabel, ylabel=ylabel, title=title)
-    ax_.legend(fontsize=theme.tick_fontsize)
-    setup_grid(ax_)
+    set_labels(ax_, xlabel=xlabel, ylabel=ylabel, title=title, ylim=ylim)
+    setup_legend(ax_, show=show_legend, legend_kw=legend_kw)
+    setup_grid(ax_, show=show_grid)
     finalize(fig, owns_figure=owns)
     return fig, ax_

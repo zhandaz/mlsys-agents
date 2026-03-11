@@ -4,8 +4,15 @@ Example::
 
     from mlsys_agents.plot import bar, save
 
-    fig, ax = bar({"LoRA": 1.52, "Full FT": 1.00, "QLoRA": 1.38}, ylabel="Speedup", show_values=True)
-    save(fig, "method_speedup")
+    fig, ax = bar(
+        {"algo": 78, "config": 52, "distributed": 41, "data": 28},
+        sort="descending",
+        ylabel="Number of Silent Bugs",
+        show_values=True,
+        bar_label_fontsize=9,
+        figsize=(10, 4),
+    )
+    save(fig, "taxonomy_distribution")
 """
 
 from __future__ import annotations
@@ -39,10 +46,15 @@ def bar(
     ylabel: str | None = None,
     xlabel: str | None = None,
     title: str | None = None,
+    ylim: tuple[float, float] | None = None,
     sort: SortOrder | None = None,
     show_values: bool = False,
     value_fmt: str = ".0f",
+    bar_label_fontsize: float | None = None,
+    bar_label_rotation: float = 0,
+    bar_label_padding: float = 2,
     orientation: Orientation = "vertical",
+    show_grid: bool = True,
     palette: str | None = None,
     colors: dict[str, str] | list[str] | None = None,
     figsize: tuple[float, float] | None = None,
@@ -56,10 +68,15 @@ def bar(
         ylabel: Y-axis label.
         xlabel: X-axis label.
         title: Figure title.
+        ylim: Y-axis limits ``(min, max)``.
         sort: ``"descending"``, ``"ascending"``, or ``None`` (keep input order).
         show_values: Annotate bars with their numeric value.
         value_fmt: Format string for value annotations (default ``".0f"``).
+        bar_label_fontsize: Font size for bar value labels (default from theme).
+        bar_label_rotation: Rotation angle for bar value labels (default ``0``).
+        bar_label_padding: Padding between bar and value label in points (default ``2``).
         orientation: ``"vertical"`` (default) or ``"horizontal"``.
+        show_grid: Show grid lines (default ``True``).
         palette: Name of a registered palette for automatic color resolution.
         colors: Explicit colors (dict or list). Overrides *palette*.
         figsize: Figure size ``(width, height)`` in inches. Auto-computed if omitted.
@@ -119,10 +136,14 @@ def bar(
         ax_.set_xticklabels(display_names, fontsize=theme.tick_fontsize, rotation=rotation, ha=ha)
 
     if show_values:
+        label_fs = bar_label_fontsize if bar_label_fontsize is not None else theme.value_fontsize
         labels = [format(v, value_fmt) for v in values]
-        ax_.bar_label(bars, labels=labels, fontsize=theme.value_fontsize, padding=2, zorder=ZORDER_LABELS)
+        ax_.bar_label(
+            bars, labels=labels, fontsize=label_fs, padding=bar_label_padding, rotation=bar_label_rotation,
+            zorder=ZORDER_LABELS,
+        )
 
-    set_labels(ax_, xlabel=xlabel, ylabel=ylabel, title=title)
-    setup_grid(ax_, orientation)
+    set_labels(ax_, xlabel=xlabel, ylabel=ylabel, title=title, ylim=ylim)
+    setup_grid(ax_, orientation, show=show_grid)
     finalize(fig, owns_figure=owns)
     return fig, ax_

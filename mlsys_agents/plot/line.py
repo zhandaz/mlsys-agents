@@ -1,20 +1,28 @@
 """Multi-line plot: multiple series on shared axes.
 
-Example::
+Example (kernel performance comparison)::
 
     from mlsys_agents.plot import line, save
 
     data = {
-        "PPO": [0.5, 0.6, 0.7, 0.75, 0.78],
-        "DPO": [0.4, 0.55, 0.65, 0.72, 0.76],
+        "Megatron": {2048: 0.85, 4096: 0.92, 8192: 0.97},
+        "DeepSpeed": {2048: 0.70, 4096: 0.78, 8192: 0.84},
     }
-    fig, ax = line(data, x=[1, 2, 3, 4, 5], ylabel="Reward", xlabel="Epoch")
-    save(fig, "training_curves")
+    fig, ax = line(
+        data,
+        ylabel="Normalized Throughput",
+        xlabel="# Tokens",
+        linewidth=1.5,
+        markersize=4,
+        xlim=(1600, 8800),
+        ylim=(0.5, 1.1),
+    )
+    save(fig, "kernel_perf")
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from mlsys_agents.plot.common import (
     ZORDER_LINES,
@@ -25,6 +33,7 @@ from mlsys_agents.plot.common import (
     resolve_display_names,
     set_labels,
     setup_grid,
+    setup_legend,
 )
 from mlsys_agents.plot.theme import get_theme
 
@@ -43,10 +52,17 @@ def line(
     ylabel: str | None = None,
     xlabel: str | None = None,
     title: str | None = None,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None,
     markers: bool = True,
+    linewidth: float = 1.5,
+    markersize: float = 6,
     line_styles: dict[str, str] | list[str] | None = None,
     log_x: bool = False,
     log_y: bool = False,
+    show_legend: bool = True,
+    legend_kw: dict[str, Any] | None = None,
+    show_grid: bool = True,
     palette: str | None = None,
     colors: dict[str, str] | list[str] | None = None,
     figsize: tuple[float, float] | None = None,
@@ -61,10 +77,17 @@ def line(
         ylabel: Y-axis label.
         xlabel: X-axis label.
         title: Figure title.
+        xlim: X-axis limits ``(min, max)``.
+        ylim: Y-axis limits ``(min, max)``.
         markers: Show markers at data points (default ``True``).
+        linewidth: Line width (default ``1.5``).
+        markersize: Marker size (default ``6``).
         line_styles: Per-series line styles as dict or list.
         log_x: Use logarithmic x-axis.
         log_y: Use logarithmic y-axis.
+        show_legend: Show the legend (default ``True``). Set to ``False`` for shared legends.
+        legend_kw: Extra kwargs passed to ``ax.legend()`` (e.g., ``loc``, ``ncol``, ``bbox_to_anchor``).
+        show_grid: Show grid lines (default ``True``).
         palette: Name of a registered palette.
         colors: Explicit colors per series. Overrides *palette*.
         figsize: Figure size in inches.
@@ -114,8 +137,8 @@ def line(
             label=display_names[i],
             linestyle=ls,
             marker=marker,
-            markersize=6,
-            linewidth=1.5,
+            markersize=markersize,
+            linewidth=linewidth,
             zorder=ZORDER_MARKERS if markers else ZORDER_LINES,
         )
 
@@ -124,9 +147,9 @@ def line(
     if log_y:
         ax_.set_yscale("log")
 
-    set_labels(ax_, xlabel=xlabel, ylabel=ylabel, title=title)
+    set_labels(ax_, xlabel=xlabel, ylabel=ylabel, title=title, xlim=xlim, ylim=ylim)
     ax_.tick_params(labelsize=theme.tick_fontsize)
-    ax_.legend(fontsize=theme.tick_fontsize)
-    setup_grid(ax_)
+    setup_legend(ax_, show=show_legend, legend_kw=legend_kw)
+    setup_grid(ax_, show=show_grid)
     finalize(fig, owns_figure=owns)
     return fig, ax_

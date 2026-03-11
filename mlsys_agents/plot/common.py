@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from itertools import chain
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from matplotlib import pyplot as plt
 
@@ -86,12 +86,21 @@ def auto_figsize(n: int, orientation: str = "vertical") -> tuple[float, float]:
 # ------------------------------------------------------------------
 
 
-def setup_grid(ax: Axes, orientation: str = "vertical") -> None:
-    """Apply default grid styling and spine z-order to an axes."""
-    theme = get_theme()
-    grid_axis = "x" if orientation == "horizontal" else "y"
-    ax.grid(axis=grid_axis, linestyle="--", alpha=theme.grid_alpha, color="black", linewidth=0.5, zorder=ZORDER_GRID)
-    ax.set_axisbelow(True)
+def setup_grid(ax: Axes, orientation: str = "vertical", *, show: bool = True) -> None:
+    """Apply default grid styling and spine z-order to an axes.
+
+    Args:
+        ax: Target axes.
+        orientation: ``"vertical"`` or ``"horizontal"`` (determines grid axis).
+        show: If ``False``, skip grid lines but still set spine z-order.
+    """
+    if show:
+        theme = get_theme()
+        grid_axis = "x" if orientation == "horizontal" else "y"
+        ax.grid(
+            axis=grid_axis, linestyle="--", alpha=theme.grid_alpha, color="black", linewidth=0.5, zorder=ZORDER_GRID
+        )
+        ax.set_axisbelow(True)
     for spine in ax.spines.values():
         spine.set_zorder(ZORDER_AXIS)
 
@@ -102,8 +111,10 @@ def set_labels(
     xlabel: str | None = None,
     ylabel: str | None = None,
     title: str | None = None,
+    xlim: tuple[float, float] | None = None,
+    ylim: tuple[float, float] | None = None,
 ) -> None:
-    """Apply axis labels and title with theme font sizes."""
+    """Apply axis labels, title, and limits with theme font sizes."""
     theme = get_theme()
     if xlabel:
         ax.set_xlabel(xlabel, fontsize=theme.base_fontsize)
@@ -111,6 +122,27 @@ def set_labels(
         ax.set_ylabel(ylabel, fontsize=theme.base_fontsize)
     if title:
         ax.set_title(title, fontsize=theme.base_fontsize + 2)
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    if ylim is not None:
+        ax.set_ylim(ylim)
+
+
+def setup_legend(ax: Axes, *, show: bool = True, legend_kw: dict[str, Any] | None = None) -> None:
+    """Apply legend with theme-aware font sizing and custom overrides.
+
+    Args:
+        ax: Target axes.
+        show: Whether to show the legend (default ``True``).
+        legend_kw: Extra kwargs passed to ``ax.legend()`` (e.g., ``loc``, ``ncol``).
+    """
+    if not show:
+        return
+    theme = get_theme()
+    kwargs: dict[str, Any] = {"fontsize": theme.tick_fontsize}
+    if legend_kw is not None:
+        kwargs.update(legend_kw)
+    ax.legend(**kwargs)
 
 
 def tick_rotation(n: int, *, threshold: int = 5, angle: int = 30) -> tuple[int, str]:
