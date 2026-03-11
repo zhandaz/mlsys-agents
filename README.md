@@ -8,7 +8,7 @@ Agent-native utilities for ML systems research and engineering.
 pip install -e .
 ```
 
-## `mlsys_agents.plot` — Academic Figures in 3 Lines
+## `mlsys_agents.plot`: Academic Figures in 3 Lines
 
 ```python
 from mlsys_agents.plot import bar, save
@@ -40,3 +40,23 @@ set_theme(palettes={"methods": Palette(
 | `pie(data)` | Pie chart |
 
 All return `(Figure, Axes)`. Use `save(fig, path)` to export (PDF + PNG, auto-closes).
+
+## Claude Code Skill
+
+This repo ships with a [Claude Code](https://claude.ai/claude-code) skill at `.claude/skills/plot/SKILL.md`. The skill gives Claude the full `mlsys_agents.plot` API reference so it can generate figures for you.
+
+**Using in this repo:** The skill is auto-loaded when you run Claude Code from this directory.
+
+**Using in another project:** Copy or symlink the skill into your project's `.claude/skills/` directory:
+
+```bash
+# Option 1: symlink (stays in sync with upstream)
+mkdir -p .claude/skills
+ln -s /path/to/mlsys-agents/.claude/skills/plot .claude/skills/mlsys-agents-plot
+
+# Option 2: copy
+mkdir -p .claude/skills/mlsys-agents-plot
+cp /path/to/mlsys-agents/.claude/skills/plot/SKILL.md .claude/skills/mlsys-agents-plot/
+```
+
+Then Claude Code will automatically use the API reference when generating plots in your project.
